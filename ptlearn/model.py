@@ -1,4 +1,5 @@
 from math import ceil
+from time import time
 
 import numpy as np
 
@@ -45,11 +46,12 @@ LOSS_FN_MAP = {
 }
 
 
-def _show_metric(epoch, loss, result=None):
+def _show_metric(epoch, total_epoch, elapse, loss, result=None):
     """ Display metric of model at the end of each epoch. """
-    metric_str = 'Epoch {:3d} | loss: {:.3f}'.format(epoch, loss)
+    metric_str = 'Epoch {}/{} - {:.3f}s | loss: {:.3f}'.format(
+        epoch, total_epoch, elapse, loss)
     if result:
-        metric_str += ' | acc: {:.3g}%'.format(result * 100)
+        metric_str += ' | acc: {:.3g}'.format(result)
 
     print(metric_str)
 
@@ -126,8 +128,14 @@ class DNN:
 
         n_batches = ceil(len(X) / batch_size)
 
+        print('Training samples: {}, validation samples: {}'.format(
+            len(X), len(X_validate)))
+
+        training_start_time = time()
+
         for epoch in range(n_epoch):
             epoch_loss = 0.
+            epoch_start_time = time()
             # Train network
             for i in range(n_batches):
                 # Calculate array index for each batch
@@ -148,6 +156,7 @@ class DNN:
 
             # Validate network
             # FIXME: Assuming classification
+            # XXX: This is slow, need profiling.
             acc = None
             if validation_set:
                 pred = np.empty((len(X_validate), self._out_features_size))
@@ -161,6 +170,11 @@ class DNN:
                 acc = accuracy(pred, Y_validate)
 
             if show_metric:
-                _show_metric(epoch, epoch_loss / n_batches, acc)
+                _show_metric(epoch=epoch + 1,
+                             total_epoch=n_epoch,
+                             elapse=time() - epoch_start_time,
+                             loss=epoch_loss / n_batches,
+                             result=acc)
 
-        print('PTLearn training completed.')
+        print('Training completed in {:.3f}s.'.format(
+            time() - training_start_time))
