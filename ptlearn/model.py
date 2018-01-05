@@ -8,7 +8,7 @@ from torch import nn
 from torch.autograd import Variable
 from torch import optim
 
-from .utils import str2val
+from .utils import str2val, to_device
 from .metrics import accuracy
 
 
@@ -69,7 +69,7 @@ class DNN:
     """
 
     def __init__(self, net, loss_fn='CrossEntropy', optimizer='Adam'):
-        self.net = net
+        self.net = to_device(net)
         self.loss_fn = str2val(loss_fn, LOSS_FN_MAP)()
         self.optimizer = str2val(optimizer, OPTIM_MAP)(net.parameters())
 
@@ -129,7 +129,7 @@ class DNN:
         n_batches = ceil(len(X) / batch_size)
 
         print('Training samples: {}, validation samples: {}'.format(
-            len(X), len(X_validate)))
+            len(X), len(X_validate) if validation_set else 0))
 
         training_start_time = time()
 
@@ -142,8 +142,8 @@ class DNN:
                 lo = i * batch_size
                 hi = lo + batch_size
 
-                inputs = Variable(torch.from_numpy(X[lo:hi]))
-                labels = Variable(torch.from_numpy(Y[lo:hi]))
+                inputs = Variable(to_device(torch.from_numpy(X[lo:hi])))
+                labels = Variable(to_device(torch.from_numpy(Y[lo:hi])))
 
                 self.optimizer.zero_grad()
 
@@ -164,7 +164,7 @@ class DNN:
                     lo = i * validation_batch_size
                     hi = lo + validation_batch_size
 
-                    inputs = Variable(torch.from_numpy(X_validate[lo:hi]))
+                    inputs = Variable(to_device(torch.from_numpy(X_validate[lo:hi])))
                     pred[lo:hi] = self.net(inputs)
 
                 acc = accuracy(pred, Y_validate)
