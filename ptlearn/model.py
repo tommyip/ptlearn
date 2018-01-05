@@ -1,11 +1,14 @@
 from math import ceil
 
+import numpy as np
+
 import torch
 from torch import nn
 from torch.autograd import Variable
 from torch import optim
 
 from .utils import str2val
+from .metrics import accuracy
 
 
 OPTIM_MAP = {
@@ -42,6 +45,15 @@ LOSS_FN_MAP = {
 }
 
 
+def _show_metric(epoch, loss, result=None):
+    """ Display metric of model at the end of each epoch. """
+    metric_str = 'Epoch {:3d} | loss: {:.3f}'.format(epoch, loss)
+    if result:
+        metric_str += ' | acc: {:.3g}%'.format(result * 100)
+
+    print(metric_str)
+
+
 class DNN:
     """ Deep Neural Network Model.
 
@@ -59,7 +71,16 @@ class DNN:
         self.loss_fn = str2val(loss_fn, LOSS_FN_MAP)()
         self.optimizer = str2val(optimizer, OPTIM_MAP)(net.parameters())
 
-    def fit(self, X, Y, n_epoch=10, batch_size=128):
+    @property
+    def _out_features_size(self):
+        """ Get size of each output sample. """
+        layer = None
+        for layer in self.net.modules():
+            pass
+        return layer.out_features
+
+    def fit(self, X, Y, n_epoch=10, batch_size=128, validation_set=0.05,
+            validation_batch_size=None, show_metric=True):
         """ Train the model by feeding inputs into the network and perform
         optimization.
 
@@ -69,17 +90,45 @@ class DNN:
             n_epoch (`int`): Number of full training cycles. Default: 10.
             batch_size (`int`): Number of samples to be propagated through the
                 network. Default: 128.
-
+            validation_set (Tuple[X, Y] or `float`, optional): Dataset for
+                validation. Split training data if given a float. Don't
+                validate network if argument is None. Default: 0.05.
+            validation_batch_size (`int`, optional): Same as batch_size but for
+                validation. If None, use batch_size. Default: None.
+            show_metric (`bool`): Display metrics at every epoch if True.
+                Default: True.
         Note:
             If X and/or Y is a 2d+ array each top level sub-array represents a
             sample.
 
         """
+        if len(X) != len(Y):
+            raise ValueError('X and Y differ in length.')
+
+        if validation_set is not None:
+            if isinstance(validation_set, float):
+                if not (0 < validation_set < 1):
+                    raise ValueError('validation_set should have range'
+                                     'within (0, 1).')
+                split_index = ceil(len(X) * (1 - validation_set))
+                X_validate, Y_validate = X[split_index:], Y[split_index:]
+                X, Y = X[0:split_index], Y[0:split_index]
+
+            elif isinstance(validation_set, tuple) and len(validation_set) == 2:
+                X_validate, Y_validate = validation_set
+            else:
+                raise TypeError(
+                    'validation_set should have type tuple, float or None, '
+                    'found: {}'.format(type(validation_set)))
+
+            validation_batch_size = validation_batch_size or batch_size
+            n_validate_batches = ceil(len(X_validate) / validation_batch_size)
+
         n_batches = ceil(len(X) / batch_size)
 
         for epoch in range(n_epoch):
             epoch_loss = 0.
-
+            # Train network
             for i in range(n_batches):
                 # Calculate array index for each batch
                 lo = i * batch_size
@@ -97,6 +146,21 @@ class DNN:
 
                 epoch_loss += loss.data[0]
 
-            print('Epoch: {} | loss: {}'.format(epoch, epoch_loss))
+            # Validate network
+            # FIXME: Assuming classification
+            acc = None
+            if validation_set:
+                pred = np.empty((len(X_validate), self._out_features_size))
+                for i in range(n_validate_batches):
+                    lo = i * validation_batch_size
+                    hi = lo + validation_batch_size
+
+                    inputs = Variable(torch.from_numpy(X_validate[lo:hi]))
+                    pred[lo:hi] = self.net(inputs)
+
+                acc = accuracy(pred, Y_validate)
+
+            if show_metric:
+                _show_metric(epoch, epoch_loss / n_batches, acc)
 
         print('PTLearn training completed.')
