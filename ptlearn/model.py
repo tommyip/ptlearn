@@ -165,8 +165,7 @@ class DNN:
                     hi = lo + validation_batch_size
 
                     inputs = Variable(to_device(torch.from_numpy(X_validate[lo:hi])))
-                    pred[lo:hi] = self.net(inputs)
-
+                    pred[lo:hi] = self.net(inputs).data.cpu().numpy()
                 acc = accuracy(pred, Y_validate)
 
             if show_metric:
