@@ -123,9 +123,6 @@ class DNN:
                     'validation_set should have type tuple, float or None, '
                     'found: {}'.format(type(validation_set)))
 
-            validation_batch_size = validation_batch_size or batch_size
-            n_validate_batches = ceil(len(X_validate) / validation_batch_size)
-
         n_batches = ceil(len(X) / batch_size)
 
         print('Training samples: {}, validation samples: {}'.format(
@@ -156,16 +153,12 @@ class DNN:
 
             # Validate network
             # FIXME: Assuming classification
+            # XXX: This is pointless if show_metric is False.
             acc = None
             if validation_set:
-                pred = np.empty((len(X_validate), self._out_features_size))
-                for i in range(n_validate_batches):
-                    lo = i * validation_batch_size
-                    hi = lo + validation_batch_size
-
-                    inputs = Variable(to_device(torch.from_numpy(X_validate[lo:hi])))
-                    pred[lo:hi] = self.net(inputs).data.cpu().numpy()
-                acc = accuracy(pred, Y_validate)
+                acc = self.evaluate(X_validate,
+                                    Y_validate,
+                                    validation_batch_size or batch_size)
 
             if show_metric:
                 _show_metric(epoch=epoch + 1,
