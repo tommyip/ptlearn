@@ -60,7 +60,7 @@ class DNN:
     """ Deep Neural Network Model.
 
     Args:
-        net (subclass of `torch.nn.Module`): PyTorch nerual network.
+        net (subclass of `torch.nn.Module`): PyTorch neural network.
         loss_fn (`str` [name] or `function`): Loss function that the optimizer
             will try to minimize. Default: 'CrossEntropy'.
         optimizer (`str` [name] or subclass of `torch.optim.Optimizer`):
@@ -87,12 +87,12 @@ class DNN:
         optimization.
 
         Args:
-            X (ndarray): Input data for training.
-            Y (ndarray): Labels for training.
+            X (`ndarray`): Input data for training.
+            Y (`ndarray`): Targets for training.
             n_epoch (`int`): Number of full training cycles. Default: 10.
             batch_size (`int`): Number of samples to be propagated through the
                 network. Default: 128.
-            validation_set (Tuple[X, Y] or `float`, optional): Dataset for
+            validation_set (`Tuple[X, Y]` or `float`, optional): Dataset for
                 validation. Split training data if given a float. Don't
                 validate network if argument is None. Default: 0.05.
             validation_batch_size (`int`, optional): Same as batch_size but for
@@ -156,7 +156,6 @@ class DNN:
 
             # Validate network
             # FIXME: Assuming classification
-            # XXX: This is slow, need profiling.
             acc = None
             if validation_set:
                 pred = np.empty((len(X_validate), self._out_features_size))
@@ -177,3 +176,49 @@ class DNN:
 
         print('Training completed in {:.3f}s.'.format(
             time() - training_start_time))
+
+    def predict(self, X, batch_size=128):
+        """ Model prediction for given input data.
+
+        Args:
+            X (`ndarray`): Input data for prediction.
+            batch_size (`int`): Number of samples to feed the network.
+                Default: 128.
+
+        Returns:
+           `ndarray` of predicted probabilities. For classification models,
+           use the `.argmax(axis=1)` method on the resulting array to obtain
+           class labels.
+
+        """
+        n_batches = ceil(len(X) / batch_size)
+
+        pred = np.empty((len(X), self._out_features_size))
+        for i in range(n_batches):
+            lo = i * batch_size
+            hi = lo + batch_size
+
+            inputs = Variable(to_device(torch.from_numpy(X[lo:hi])))
+            pred[lo:hi] = self.net(inputs).data.cpu().numpy()
+
+        return pred
+
+    def evaluate(self, X, Y, batch_size=128):
+        """ Evaluate model metric on given samples.
+
+        Args:
+            X (`ndarray`): Input data for evaluation.
+            Y (`ndarray`): Targets for comparison with prediction.
+            batch_size (`int`): Number of samples to feed the network.
+                Default: 128.
+
+        Returns:
+            Metric score.
+
+        """
+        if len(X) != len(Y):
+            raise ValueError('X and Y differ in length.')
+
+        pred = self.predict(X, batch_size)
+
+        return accuracy(pred, Y)
