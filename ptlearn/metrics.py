@@ -8,6 +8,9 @@ class Accuracy:
     that matches exactly with their corresponding target label.
 
     """
+    def __init__(self):
+        self.name = 'Acc'
+
     def __call__(_self, pred, targets):
         """
         Args:
@@ -31,6 +34,9 @@ class R2:
     regression model approximates the real data samples.
 
     """
+    def __init__(self):
+        self.name = 'R2'
+
     def __call__(_self, pred, targets):
         """
         Args:

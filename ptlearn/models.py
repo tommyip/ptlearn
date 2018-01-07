@@ -65,10 +65,9 @@ class DNN:
     def __init__(self, net, loss_fn='CrossEntropy', optimizer='Adam',
                  metric='Accuracy'):
         self.net = to_device(net)
-        # XXX: Wrong implementation, class should be initiated inside str2val
-        self.loss_fn = str2val(loss_fn, LOSS_FN_MAP)()
-        self.optimizer = str2val(optimizer, OPTIM_MAP)(net.parameters())
-        self.metric = str2val(metric, METRIC_MAP)()
+        self.loss_fn = str2val(loss_fn, LOSS_FN_MAP)
+        self.optimizer = str2val(optimizer, OPTIM_MAP, params=net.parameters())
+        self.metric = str2val(metric, METRIC_MAP)
 
     @property
     def _out_features_size(self):
@@ -83,7 +82,7 @@ class DNN:
         metric_str = 'Epoch {}/{} - {:.3f}s | loss: {:.3f}'.format(
             epoch, total_epoch, elapse, loss)
         if score:
-            metric_str += ' | {}: {:.3g}'.format(self.metric.__name__, score)
+            metric_str += ' | {}: {:.3g}'.format(self.metric.name, score)
 
         print(metric_str)
 
