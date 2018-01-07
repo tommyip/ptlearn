@@ -9,7 +9,7 @@ from torch.autograd import Variable
 from torch import optim
 
 from .utils import str2val, to_device
-from .metrics import accuracy
+from .metrics import Accuracy, R2
 
 
 OPTIM_MAP = {
@@ -45,15 +45,10 @@ LOSS_FN_MAP = {
     'TripletMargin': nn.TripletMarginLoss,
 }
 
-
-def _show_metric(epoch, total_epoch, elapse, loss, result=None):
-    """ Display metric of model at the end of each epoch. """
-    metric_str = 'Epoch {}/{} - {:.3f}s | loss: {:.3f}'.format(
-        epoch, total_epoch, elapse, loss)
-    if result:
-        metric_str += ' | acc: {:.3g}'.format(result)
-
-    print(metric_str)
+METRIC_MAP = {
+    'Accuracy': Accuracy,
+    'R2': R2,
+}
 
 
 class DNN:
@@ -65,13 +60,17 @@ class DNN:
             will try to minimize. Default: 'CrossEntropy'.
         optimizer (`str` [name] or subclass of `torch.optim.Optimizer`):
             Optimizer to use. Default: 'Adam'.
+        metric (`str` [name] or `function`): Metric to use.
+            Default: 'Accuracy'.
 
     """
 
-    def __init__(self, net, loss_fn='CrossEntropy', optimizer='Adam'):
+    def __init__(self, net, loss_fn='CrossEntropy', optimizer='Adam',
+                 metric='Accuracy'):
         self.net = to_device(net)
         self.loss_fn = str2val(loss_fn, LOSS_FN_MAP)()
         self.optimizer = str2val(optimizer, OPTIM_MAP)(net.parameters())
+        self.metric = str2val(metric, METRIC_MAP)
 
     @property
     def _out_features_size(self):
@@ -80,6 +79,15 @@ class DNN:
         for layer in self.net.modules():
             pass
         return layer.out_features
+
+    def _show_stats(self, epoch, total_epoch, elapse, loss, score=None):
+        """ Display the metrics of model at the end of each epoch. """
+        metric_str = 'Epoch {}/{} - {:.3f}s | loss: {:.3f}'.format(
+            epoch, total_epoch, elapse, loss)
+        if score:
+            metric_str += ' | {}: {:.3g}'.format(self.metric.__name__, score)
+
+        print(metric_str)
 
     def fit(self, X, Y, n_epoch=10, batch_size=128, validation_set=0.05,
             validation_batch_size=None, show_metric=True):
@@ -152,20 +160,19 @@ class DNN:
                 epoch_loss += loss.data[0]
 
             # Validate network
-            # FIXME: Assuming classification
             # XXX: This is pointless if show_metric is False.
-            acc = None
+            score = None
             if validation_set:
-                acc = self.evaluate(X_validate,
-                                    Y_validate,
-                                    validation_batch_size or batch_size)
+                score = self.evaluate(X_validate,
+                                      Y_validate,
+                                      validation_batch_size or batch_size)
 
             if show_metric:
-                _show_metric(epoch=epoch + 1,
-                             total_epoch=n_epoch,
-                             elapse=time() - epoch_start_time,
-                             loss=epoch_loss / n_batches,
-                             result=acc)
+                self._show_stats(epoch=epoch + 1,
+                                 total_epoch=n_epoch,
+                                 elapse=time() - epoch_start_time,
+                                 loss=epoch_loss / n_batches,
+                                 score=score)
 
         print('Training completed in {:.3f}s.'.format(
             time() - training_start_time))
@@ -214,4 +221,4 @@ class DNN:
 
         pred = self.predict(X, batch_size)
 
-        return accuracy(pred, Y)
+        return self.metric(pred, Y)
