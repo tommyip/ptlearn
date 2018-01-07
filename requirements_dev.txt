@@ -1,0 +1,6 @@
+# PyTorch (Linux, Python 3.5, CUDA 8)
+http://download.pytorch.org/whl/cu80/torch-0.3.0.post4-cp35-cp35m-linux_x86_64.whl ; sys_platform == "linux"
+
+pytest>=3.3.2
+
+flake8

@@ -10,7 +10,7 @@ setup(
     url='https://github.com/tommyip/ptlearn',
     license='MIT',
     install_requires=[
-        'numpy',
+        'numpy>=1.14.0',
     ],
     classifiers=[
         'License :: OSI Approved :: MIT License',
