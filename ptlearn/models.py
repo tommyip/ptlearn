@@ -1,8 +1,6 @@
 from math import ceil
 from time import time
 
-import numpy as np
-
 import torch
 from torch import nn
 from torch.autograd import Variable
@@ -177,6 +175,25 @@ class DNN:
         print('Training completed in {:.3f}s.'.format(
             time() - training_start_time))
 
+    def _predict(self, X, batch_size=128):
+        """ Internal implementation of `predict()` that returns a tensor.
+
+        Returns:
+            `Tensor`. Predicted targets.
+
+        """
+        n_batches = ceil(len(X) / batch_size)
+
+        pred = to_device(torch.FloatTensor(len(X), self._out_features_size))
+        for i in range(n_batches):
+            lo = i * batch_size
+            hi = lo + batch_size
+
+            inputs = Variable(to_device(torch.from_numpy(X[lo:hi])))
+            pred[lo:hi] = self.net(inputs).data
+
+        return pred
+
     def predict(self, X, batch_size=128):
         """ Model prediction for given input data.
 
@@ -186,22 +203,12 @@ class DNN:
                 Default: 128.
 
         Returns:
-           `ndarray` of predicted probabilities. For classification models,
-           use the `.argmax(axis=1)` method on the resulting array to obtain
-           class labels.
+           `ndarray` of predicted targets. For classification models, use the
+           `.argmax(axis=1)` method on the resulting one-hot encoded array to
+           obtain class labels.
 
         """
-        n_batches = ceil(len(X) / batch_size)
-
-        pred = np.empty((len(X), self._out_features_size))
-        for i in range(n_batches):
-            lo = i * batch_size
-            hi = lo + batch_size
-
-            inputs = Variable(to_device(torch.from_numpy(X[lo:hi])))
-            pred[lo:hi] = self.net(inputs).data.cpu().numpy()
-
-        return pred
+        return self._predict(X, batch_size).cpu().numpy()
 
     def evaluate(self, X, Y, batch_size=128):
         """ Evaluate model metric on given samples.
@@ -213,12 +220,12 @@ class DNN:
                 Default: 128.
 
         Returns:
-            Metric score.
+            `float`. Metric score.
 
         """
         if len(X) != len(Y):
             raise ValueError('X and Y differ in length.')
 
-        pred = self.predict(X, batch_size)
+        pred = self._predict(X, batch_size)
 
-        return self.metric(pred, Y)
+        return self.metric(pred, to_device(torch.from_numpy(Y)))

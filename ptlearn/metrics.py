@@ -1,20 +1,23 @@
-import numpy as np
+import torch
 
 # Classification metrics
 
 
 def accuracy(pred, targets):
-    """ The ratio of correct predictions to ground truth for categorical data.
+    """ Classification accuracy score: the proportion of predicted labels that
+    matches exactly with their corresponding target labels.
 
     Args:
-        pred (`ndarray`): One-hot encoded categorical prediction.
-        targets (`ndarray`): Ground truth class labels.
+        pred (`Tensor`): One-hot encoded categorical prediction.
+        targets (`LongTensor`): Ground truth class labels.
 
     Returns:
         float: Accuracy of model ranging [0, 1], higher is better.
 
     """
-    return (pred.argmax(axis=1) == targets).sum() / len(targets)
+    # The `.max` method on a PyTorch tensor returns a tuple, the second
+    # element contains the indices.
+    return (pred.max(dim=1)[1] == targets).sum() / len(targets)
 
 
 # Regression metrics
@@ -22,20 +25,20 @@ def accuracy(pred, targets):
 
 def r2(pred, targets):
     """ R^2 (Coefficient of determination) is the measure of how well the
-    regression line approximates the real data samples.
+    regression model approximates the real data samples.
 
     Args:
-        pred (`ndarray`): Predicted target values.
-        targets (`ndarray`): Ground truth target values.
+        pred (`Tensor`): Predicted target values.
+        targets (`Tensor`): Ground truth target values.
 
     Returns:
         `float` (maybe be negative). A R^2 of 1 indicates that the regression
-        line perfectly fits the data.
+        model perfectly fits the data.
 
     """
 
-    numerator = ((targets - pred) ** 2).sum(axis=0)
+    numerator = ((targets - pred) ** 2).sum(dim=0)
     # TODO: Handle divide by 0.
-    denominator = ((targets - targets.mean(axis=0)) ** 2).sum(axis=0)
+    denominator = ((targets - targets.mean(dim=0)) ** 2).sum(dim=0)
 
-    return np.mean(1 - (numerator / denominator))
+    return torch.mean(1 - (numerator / denominator))
