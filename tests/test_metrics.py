@@ -20,7 +20,8 @@ class TestClassificationMetrics:
     labels = torch.LongTensor([3, 1, 2, 0, 1, 3, 4, 3, 2, 3])
 
     def test_accuracy(self):
-        assert metrics.accuracy(self.pred, self.labels) == 0.7
+        metric = metrics.Accuracy()
+        assert metric(self.pred, self.labels) == 0.7
 
 
 class TestRegressionMetrics:
@@ -41,4 +42,5 @@ class TestRegressionMetrics:
         38.])
 
     def test_r2(self):
-        assert metrics.r2(self.pred, self.targets) == approx(0.818234)
+        metric = metrics.R2()
+        assert metric(self.pred, self.targets) == approx(0.818234)

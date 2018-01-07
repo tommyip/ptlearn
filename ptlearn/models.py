@@ -7,8 +7,7 @@ from torch.autograd import Variable
 from torch import optim
 
 from .utils import str2val, to_device
-from .metrics import accuracy, r2
-
+from . import metrics
 
 OPTIM_MAP = {
     'Adadelta': optim.Adadelta,
@@ -44,8 +43,8 @@ LOSS_FN_MAP = {
 }
 
 METRIC_MAP = {
-    'accuracy': accuracy,
-    'r2': r2,
+    'Accuracy': metrics.Accuracy,
+    'R2': metrics.R2,
 }
 
 
@@ -58,17 +57,18 @@ class DNN:
             will try to minimize. Default: 'CrossEntropy'.
         optimizer (`str` [name] or subclass of `torch.optim.Optimizer`):
             Optimizer to use. Default: 'Adam'.
-        metric (`str` [name] or `function`): Metric to use.
-            Default: 'accuracy'.
+        metric (`str` [name] or Metric `object`): Metric to use.
+            Default: 'Accuracy'.
 
     """
 
     def __init__(self, net, loss_fn='CrossEntropy', optimizer='Adam',
-                 metric='accuracy'):
+                 metric='Accuracy'):
         self.net = to_device(net)
+        # XXX: Wrong implementation, class should be initiated inside str2val
         self.loss_fn = str2val(loss_fn, LOSS_FN_MAP)()
         self.optimizer = str2val(optimizer, OPTIM_MAP)(net.parameters())
-        self.metric = str2val(metric, METRIC_MAP)
+        self.metric = str2val(metric, METRIC_MAP)()
 
     @property
     def _out_features_size(self):
