@@ -17,10 +17,14 @@ class TestClassificationMetrics:
          [0.09385917, 0.74943907, 0.77565935, 0.75978254, 0.33365698],
          [0.13145185, 0.40667302, 0.34105547, 0.75103126, 0.17661392]])
 
-    labels = torch.LongTensor([3, 1, 2, 0, 1, 3, 4, 3, 2, 3])
+    labels = torch.LongTensor([3, 4, 0, 0, 0, 4, 3, 2, 2, 4])
 
-    def test_accuracy(self):
+    def test_Accuracy(self):
         metric = metrics.Accuracy()
+        assert metric(self.pred, self.labels) == 0.4
+
+    def test_Top_k(self):
+        metric = metrics.Top_k(k=2)
         assert metric(self.pred, self.labels) == 0.7
 
 
@@ -41,6 +45,6 @@ class TestRegressionMetrics:
         14., 26., 18., 36., 28., 24., 10., 13., 23., 16., 25., 20., 14.,
         38.])
 
-    def test_r2(self):
+    def test_R2(self):
         metric = metrics.R2()
         assert metric(self.pred, self.targets) == approx(0.818234)

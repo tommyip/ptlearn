@@ -26,6 +26,38 @@ class Accuracy:
         return (pred.max(dim=1)[1] == targets).sum() / len(targets)
 
 
+class Top_k:
+    """ Top_k mean accuracy: proportion of top-k predicted labels that
+    matches their corresponding target label.
+
+    Args:
+        k (`int`): The `k` in `top-k`. Default: 5.
+
+    """
+    def __init__(self, k=5):
+        if not isinstance(k, int):
+            raise TypeError('Top_k expects an integer.')
+        self.name = 'Top_' + str(k)
+        self.k = k
+
+    def __name__(self):
+        return 'Top_' + self.k
+
+    def __call__(self, pred, targets):
+        """
+        Args:
+            pred (`Tensor`): One-hot encoded class predictions.
+            targets (`LongTensor`): Ground truth class labels.
+
+        Returns:
+            `float`. Mean accuracy.
+
+        """
+        # Topk returns (values, indices) but we only need the latter.
+        matches = pred.topk(self.k, sorted=False)[1].t() == targets
+        return matches.sum() / len(targets)
+
+
 # Regression metrics
 
 

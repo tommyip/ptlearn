@@ -44,6 +44,7 @@ LOSS_FN_MAP = {
 
 METRIC_MAP = {
     'Accuracy': metrics.Accuracy,
+    'Top_k': metrics.Top_k,
     'R2': metrics.R2,
 }
 
@@ -67,6 +68,7 @@ class DNN:
         self.net = to_device(net)
         self.loss_fn = str2val(loss_fn, LOSS_FN_MAP)
         self.optimizer = str2val(optimizer, OPTIM_MAP, params=net.parameters())
+        # TODO: Possible eager bound check for top-k's k value.
         self.metric = str2val(metric, METRIC_MAP)
 
     @property
@@ -79,6 +81,7 @@ class DNN:
 
     def _show_stats(self, epoch, total_epoch, elapse, loss, score=None):
         """ Display the metrics of model at the end of each epoch. """
+        # TODO: Implement in-place UI update.
         metric_str = 'Epoch {}/{} - {:.3f}s | loss: {:.3f}'.format(
             epoch, total_epoch, elapse, loss)
         if score:
