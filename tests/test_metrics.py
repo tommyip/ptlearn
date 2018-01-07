@@ -19,8 +19,8 @@ class TestClassificationMetrics:
 
     labels = np.array([3, 1, 2, 0, 1, 3, 4, 3, 2, 3])
 
-    def test_Accuracy(self):
-        assert metrics.Accuracy(self.pred, self.labels) == 0.7
+    def test_accuracy(self):
+        assert metrics.accuracy(self.pred, self.labels) == 0.7
 
 
 class TestRegressionMetrics:
@@ -40,5 +40,5 @@ class TestRegressionMetrics:
         14., 26., 18., 36., 28., 24., 10., 13., 23., 16., 25., 20., 14.,
         38.])
 
-    def test_R2(self):
-        assert metrics.R2(self.pred, self.targets) == approx(0.818234)
+    def test_r2(self):
+        assert metrics.r2(self.pred, self.targets) == approx(0.818234)

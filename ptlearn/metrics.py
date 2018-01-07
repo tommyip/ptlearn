@@ -3,7 +3,7 @@ import numpy as np
 # Classification metrics
 
 
-def Accuracy(pred, targets):
+def accuracy(pred, targets):
     """ The ratio of correct predictions to ground truth for categorical data.
 
     Args:
@@ -20,7 +20,7 @@ def Accuracy(pred, targets):
 # Regression metrics
 
 
-def R2(pred, targets):
+def r2(pred, targets):
     """ R^2 (Coefficient of determination) is the measure of how well the
     regression line approximates the real data samples.
 

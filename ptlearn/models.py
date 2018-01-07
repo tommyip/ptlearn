@@ -9,7 +9,7 @@ from torch.autograd import Variable
 from torch import optim
 
 from .utils import str2val, to_device
-from .metrics import Accuracy, R2
+from .metrics import accuracy, r2
 
 
 OPTIM_MAP = {
@@ -46,8 +46,8 @@ LOSS_FN_MAP = {
 }
 
 METRIC_MAP = {
-    'Accuracy': Accuracy,
-    'R2': R2,
+    'accuracy': accuracy,
+    'r2': r2,
 }
 
 
@@ -61,12 +61,12 @@ class DNN:
         optimizer (`str` [name] or subclass of `torch.optim.Optimizer`):
             Optimizer to use. Default: 'Adam'.
         metric (`str` [name] or `function`): Metric to use.
-            Default: 'Accuracy'.
+            Default: 'accuracy'.
 
     """
 
     def __init__(self, net, loss_fn='CrossEntropy', optimizer='Adam',
-                 metric='Accuracy'):
+                 metric='accuracy'):
         self.net = to_device(net)
         self.loss_fn = str2val(loss_fn, LOSS_FN_MAP)()
         self.optimizer = str2val(optimizer, OPTIM_MAP)(net.parameters())
