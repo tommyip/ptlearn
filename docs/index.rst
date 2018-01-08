@@ -1,19 +1,19 @@
-.. PTLearn documentation master file, created by
-   sphinx-quickstart on Mon Jan  8 16:00:06 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+PTLearn - A high-level API for PyTorch
+======================================
 
-Welcome to PTLearn's documentation!
-===================================
+PTLearn is a deep learning library built on top of PyTorch. Inspired by TFLearn
+for TensorFlow, PTLearn provides a high-level API to PyTorch for quick and easy
+experimentation.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   tutorials
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
