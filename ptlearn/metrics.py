@@ -85,3 +85,24 @@ class R2:
         denominator = ((targets - targets.mean(dim=0)) ** 2).sum(dim=0)
 
         return torch.mean(1 - (numerator / denominator))
+
+
+class MAE:
+    """ Mean Absolute Error: measure of difference between two continuous
+    variables.
+
+    """
+    def __init__(self):
+        self.name = 'MAE'
+
+    def __call__(_self, pred, targets):
+        """
+        Args:
+            pred (`Tensor`): Predicted target values.
+            targets (`Tensor`): Ground truth target values.
+
+        Returns:
+            `float`. Non-negative floating point loss, optimal value is 0.0
+
+        """
+        return (pred - targets).abs().mean()

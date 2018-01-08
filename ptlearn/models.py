@@ -46,6 +46,7 @@ METRIC_MAP = {
     'Accuracy': metrics.Accuracy,
     'Top_k': metrics.Top_k,
     'R2': metrics.R2,
+    'MAE': metrics.MAE,
 }
 
 
