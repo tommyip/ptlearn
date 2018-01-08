@@ -52,3 +52,7 @@ class TestRegressionMetrics:
     def test_MAE(self):
         metric = metrics.MAE()
         assert metric(self.pred, self.targets) == approx(2.671810)
+
+    def test_MSE(self):
+        metric = metrics.MSE()
+        assert metric(self.pred, self.targets) == approx(11.109383)

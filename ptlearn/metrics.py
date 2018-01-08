@@ -102,7 +102,30 @@ class MAE:
             targets (`Tensor`): Ground truth target values.
 
         Returns:
-            `float`. Non-negative floating point loss, optimal value is 0.0
+            `float`. Non-negative floating point loss, values closer to zero
+            are better.
 
         """
         return (pred - targets).abs().mean()
+
+
+class MSE:
+    """ Mean Squared Error: risk function to calculate the average of the
+    squares of the errors or deviations.
+
+    """
+    def __init__(self):
+        self.name = 'MSE'
+
+    def __call__(self, pred, targets):
+        """
+        Args:
+            pred (`Tensor`): Predicted target values.
+            targets (`Tensor`): Ground truth target values.
+
+        Returns:
+            `float`. Non-negative floating point value, values closer to zero
+            are better.
+
+        """
+        return ((pred - targets) ** 2).mean()
