@@ -6,3 +6,4 @@ pytest>=3.3.2
 flake8
 
 Sphinx
+sphinx_rtd_theme
